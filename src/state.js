@@ -23,7 +23,7 @@ function proxy(vm, target, key) {
 // 初始化data
 function initData(vm) {
     let data = vm.$options.data; // 赋值后如果是方法，直接调用this会指向window
-    data = typeof data === 'function' ? data.call(vm) : data;
+    data = typeof data === 'function' ? data.call(vm) : data; // 执行方法data，指向Vue实例
     vm._data = data; // 将data挂载到实例上，方面每次使用（vm.$options.data -> vm._data）
     // 拿到data后对其进行数据劫持（监听data中数据的变化）
     observe(data);

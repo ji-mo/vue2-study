@@ -4,7 +4,7 @@ class Observe {
     constructor(data) {
         // 在data属性上保存实例，以便后续随时可以调用walk/observeArray等方法
         Object.defineProperty(data, '__ob__', { 
-            vaule: this,
+            value: this,
             enumerable: false, // 不可被枚举（遍历），方死循环
         });
         if (Array.isArray(data)) {

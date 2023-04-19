@@ -6,11 +6,11 @@ const methods = ['push', 'pop', 'shift', 'unshift', 'sort', 'reverse', 'splice']
 methods.forEach(method => {
     // 重写对象中的方法
     newArrayProto[method] = function (...args) {
-        console.log('newArrayProto', method);
         // 调用原来的方法对数组进行操作（注意this指向）
         const result = oldArrayProto[method].call(this, ...args);
         let inserted = null;
         let ob = this.__ob__; // 获取调用者身上保存的Observe实例
+        console.log('newArrayProto', method, ob);
         switch (method) {
             case 'push':
             case 'unshift':
