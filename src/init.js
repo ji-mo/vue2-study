@@ -28,11 +28,10 @@ export function initMixin(Vue) {
                 }
             }
             if (template) {
-                // 拿到模板，则对模板进行编译
+                // 拿到模板，则对模板进行编译，得到render方法
                 const render = compileToFunction(template);
                 ops.render = render;
             }
-            console.log('$mount', template);
         }
         ops.render;
     }
