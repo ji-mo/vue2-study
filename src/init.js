@@ -1,4 +1,5 @@
 import { compileToFunction } from "./complier";
+import { mountComponent } from "./lifecycle";
 import { initState } from "./state";
 
 // 给Vue增加init方法
@@ -32,6 +33,8 @@ export function initMixin(Vue) {
                 const render = compileToFunction(template);
                 ops.render = render;
             }
+            // 拿到了Vue的实例化对象（包含所有选项和render方法），以及需要挂载的元素节点
+            mountComponent(vm, el);
         }
         ops.render;
     }
