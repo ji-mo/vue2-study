@@ -1,9 +1,72 @@
+import { createElementVNode, createTextVNode } from "./vdom";
+
+function createElm(vnode) {
+    let { tag, data, children, text } = vnode;
+    if (typeof tag === 'string') {
+        // 创建标签
+        vnode.el = document.createElement(tag);
+        // 设置属性
+        patchProps(vnode.el, data);
+        children.forEach(child => {
+            vnode.el.appendChild(createElm(child));
+        });
+    } else {
+        // 创建文本
+        vnode.el = document.createTextNode(text);
+    }
+    return vnode.el;
+}
+
+function patchProps(el, props) {
+    for (let key in props) {
+        if (key === 'style') {
+            for (let styleName in props.style) {
+                el.style[styleName] = props.style[styleName];
+            }
+        } else {
+            el.setAttribute(key, props[key]);
+        }
+    }
+}
+
+function patch(oldVNode, vnode) {
+    const isRealElement = oldVNode.nodeType; // 是否是真实节点
+    if (isRealElement) {
+        const elm = oldVNode;
+        const parentElm = elm.parentNode; // 获取节点父元素
+        let newElm = createElm(vnode);
+        parentElm.insertBefore(newElm, elm.nextSibling); // 插入生成的节点
+        parentElm.removeChild(elm); // 删除老节点
+        return newElm;
+    }
+}
+
 export function initLifeCycle(Vue) {
-    Vue.prototype._update = function() {
-        console.log('_update');
+    // 将vnode转化成为真实dom
+    Vue.prototype._update = function(vnode) {
+        // 拿到虚拟dom
+        const vm = this;
+        const el = vm.$el;
+        console.log('_update', vnode, el);
+        // patch 初始化、更新
+        vm.$el = patch(el, vnode); // 每次覆盖最新的dom
+    }
+    // _c('div', {}, ...children)
+    Vue.prototype._c = function() {
+        return createElementVNode(this, ...arguments);
+    }
+    // _v(_s(name) + 'text' + _s(age))
+    Vue.prototype._v = function() {
+        return createTextVNode(this, ...arguments);
+    }
+    // 直接返回文本字符串即可
+    Vue.prototype._s = function(value) {
+        if (typeof value !== 'object') return value;
+        return JSON.stringify(value);
     }
     Vue.prototype._render = function() {
-        console.log('_render');
+        // 使得render中的with(this)指向vm，从而获取到data中的值
+        return this.$options.render.call(this);
     }
 }
 
@@ -17,7 +80,10 @@ export function initLifeCycle(Vue) {
  */
 
 export function mountComponent(vm, el) {
+    vm.$el = el; // 保存最开始的dom
     // 调用render方法产生虚拟节点 虚拟DOM
+    // 渲染时通过with方法，插值表达式中的属性会从实例中取值
+    // 做到data的属性和dom视图绑定在一起
     vm._update(vm._render()); // vm.$options.render()
 
     // 根据虚拟DOM生成真是DOM
