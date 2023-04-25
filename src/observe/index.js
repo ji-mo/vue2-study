@@ -1,4 +1,5 @@
 import { newArrayProto } from './array';
+import Dep from './dep';
 
 class Observe {
     constructor(data) {
@@ -24,17 +25,22 @@ class Observe {
     }
 }
 
-export function defineReactive(target, key, value) { // 形成闭包
+export function defineReactive(target, key, value) { // 与Object.defineProperty形成闭包
     observe(value); // 若value也为对象，增继续向下监听
+    let dep = new Dep(); // 闭包到时dep一直被get和set引用
     // 属性劫持，对data的每个属性"重新定义"，影响了性能
     Object.defineProperty(target, key, {
         get() {
+            if (Dep.target) {
+                dep.depend(); // watcher获取所需属性，让收集器记住当前属性的watcher
+            }
             return value;
         },
         set(newVal) {
             if (value === newVal) return;
             observe(newVal); // 如果设置新值为对象，则需要继续劫持
             value = newVal;
+            dep.notify(); // 通知更新
         }
     })
 }

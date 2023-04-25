@@ -31,6 +31,7 @@ export function initMixin(Vue) {
             if (template) {
                 // 拿到模板，则对模板进行编译，得到render方法
                 const render = compileToFunction(template);
+                // 将render方法绑定到实例的optiosns上
                 ops.render = render;
             }
             // 拿到了Vue的实例化对象（包含所有选项和render方法），以及需要挂载的元素节点
