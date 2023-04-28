@@ -1,8 +1,11 @@
 import { newArrayProto } from './array';
 import Dep from './dep';
 
-class Observe {
+class Observer {
     constructor(data) {
+
+        this.dep = new Dep(); // 让整个对象被收集到
+
         // 在data属性上保存实例，以便后续随时可以调用walk/observeArray等方法
         Object.defineProperty(data, '__ob__', { 
             value: this,
@@ -25,14 +28,31 @@ class Observe {
     }
 }
 
+// 深层次嵌套产生递归，递归多了性能差，不存在的属性监控不到，存在的属性要重写方法
+function dependArray(value) {
+    for(let i = 0; i < value.length; i ++) {
+        let current = value[i];
+        current.__ob__ && current.__ob__.dep.depend();
+        if (Array.isArray(current)) {
+            dependArray(current);
+        }
+    }
+}
+
 export function defineReactive(target, key, value) { // 与Object.defineProperty形成闭包
-    observe(value); // 若value也为对象，增继续向下监听
+    let childOb = observe(value); // 若value也为对象，增继续向下监听
     let dep = new Dep(); // 闭包到时dep一直被get和set引用
     // 属性劫持，对data的每个属性"重新定义"，影响了性能
     Object.defineProperty(target, key, {
         get() {
             if (Dep.target) {
                 dep.depend(); // watcher获取所需属性，让收集器记住当前属性的watcher
+                if (childOb) {
+                    childOb.dep.depend(); // 不止对象的属性，数组、对象本身也依赖收集
+                    if (Array.isArray(value)) {
+                        dependArray(value);
+                    }
+                }
             }
             return value;
         },
@@ -47,6 +67,9 @@ export function defineReactive(target, key, value) { // 与Object.defineProperty
 
 export function observe(data) {
     // 只劫持对象，多层对象深度劫持时的出口
-    if (typeof data !== 'object') return;
-    return new Observe(data);
+    if (typeof data !== 'object' || data == null) return;
+    if(data.__ob__ instanceof Observer){ // 说明这个对象被代理过了
+        return data.__ob__;
+    }
+    return new Observer(data);
 }

@@ -17,7 +17,7 @@ class Watcher {
         this.getter = fn;
         this.deps = []; // 后续我们需要实现计算属性等，还有一些清理工作
         this.depsId = new Set();
-        this.get();
+        this.get(); // 调用执行一次
     }
     addDep(dep) {
         let id = dep.id;

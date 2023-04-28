@@ -12,6 +12,10 @@ export function initMixin(Vue) {
 
         // 初始化参数各个属性的状态（data、watch、computed）
         initState(vm);
+
+        if (options.el) {
+            vm.$mount(options.el); // 实现数据的挂载
+        }
     }
     Vue.prototype.$mount = function (el) {
         const vm = this;

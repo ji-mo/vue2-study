@@ -10,7 +10,6 @@ methods.forEach(method => {
         const result = oldArrayProto[method].call(this, ...args);
         let inserted = null;
         let ob = this.__ob__; // 获取调用者身上保存的Observe实例
-        console.log('newArrayProto', method, ob);
         switch (method) {
             case 'push':
             case 'unshift':
@@ -26,7 +25,8 @@ methods.forEach(method => {
             ob.observeArray(inserted);
         }
         // 对改变数组的值进行劫持
+        ob.dep.notify();
         return result;
     }
-})
+});
 
