@@ -33,7 +33,7 @@ export function parseHTML(html) {
         if (!root) {
             root = node;
         }
-        // 下一个开始标签进入时，已经存在标签了则，则自身为子标签
+        // 下一个开始标签进入时，已经存在标签了，则自身为子标签
         if (currentParent) {
             node.parent = currentParent;
             currentParent.children.push(node);

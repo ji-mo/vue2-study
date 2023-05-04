@@ -4,6 +4,7 @@ import Dep from './dep';
 class Observer {
     constructor(data) {
 
+        // 给每个对象都增加依赖收集（对象、数组增加新的属性元素都能都收集到）
         this.dep = new Dep(); // 让整个对象被收集到
 
         // 在data属性上保存实例，以便后续随时可以调用walk/observeArray等方法

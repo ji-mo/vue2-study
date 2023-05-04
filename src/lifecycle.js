@@ -48,7 +48,7 @@ export function initLifeCycle(Vue) {
         // 通过_render方法，拿到虚拟dom
         const vm = this;
         const el = vm.$el;
-        console.log('_update', vnode, el);
+        console.log('_update', vnode);
         // patch 初始化、更新
         vm.$el = patch(el, vnode); // 每次覆盖最新的dom
     }

@@ -20,28 +20,32 @@ class Watcher {
         this.get(); // 调用执行一次
     }
     addDep(dep) {
+        // 当多个属性变化需要更新节点，通过dep收集这些属性所在的watcher，多个属性在同一个watcher则需要去重
+        // defineReactive的闭包导致每一个属性都是同一个new Dep在收集，所以id不变
         let id = dep.id;
-        // 数据劫持的闭包导致同一个属性的dep不被释放
         if (!this.depsId.has(id)) {
             this.deps.push(dep); // 当前的wathcer是由哪个dep进行记录
             this.depsId.add(id);
-            dep.addSub(this); // dep记录当前更新视图的watcher
+            dep.addSub(this); // dep记录当前属性变化后所需更新视图的watcher
         }
     }
     get() {
-        Dep.target = this; // 静态属性，将当前更新视图的watcher保存，供数据劫持的get拿到
+        // 静态属性，将当前更新视图的watcher保存
+        // getter里的with方法触发数据劫持，get回调中拿到当前属性的watcher
+        // 并使用dep.depend方法，depend调用watcher.addDep去重多个属性在同一个watcher
+        Dep.target = this;
         this.getter(); // 将插值表达式中的属性从data中取出，触发get属性描述符
         Dep.target = null; // 清空
     }
     update() {
-        queryWatcher(this); // 把watcher都暂存起来
-        // this.get();
+        // 把所有需要update的watcher都暂存起来
+        queryWatcher(this);
     }
     run() {
         this.get();
     }
 }
-// 给每个属性都增加一个dep，目的是收集watcher
+// 给每个属性都增加一个dep，目的是收集watcher（需要去重）
 
 let queue = [];
 let has = {};
@@ -49,14 +53,14 @@ let pending = false; // 防抖
 
 function flushSchedulerQueue() {
     let flushQueue = queue.slice(0);
-    queue = [];
+    queue = []; // 再刷新的过程中，可能还有新的watcher放入queue中，继续收集
     has = {};
     pending = false;
-    flushQueue.forEach(q => q.run()); // 再刷新的过程中，可能还有新的watcher放入queue中
-
+    flushQueue.forEach(q => q.run());
 }
 
 function queryWatcher(watcher) {
+    // 对watcher进行去重
     const id = watcher.id;
     if (!has[id]) {
         queue.push(watcher); // 去重watcher
@@ -64,6 +68,7 @@ function queryWatcher(watcher) {
         // 不管我们的update执行多少次，但是最终所有同步操作执行后异步更新dom（事件循环）
         if (!pending) {
             // setTimeout(flushSchedulerQueue, 0);
+            // 通过异步任务，当所有的相应数据变化后，最后只进行一次dom更新
             nextTick(flushSchedulerQueue, 0);
             pending = true;
         }
@@ -73,9 +78,9 @@ function queryWatcher(watcher) {
 let callbacks = [];
 let waiting = false;
 function flushCallbacks() {
-    let cbs = callbacks.slice(0);
+    let cbs = callbacks.slice(0); // 保存需要执行方法
     waiting = false;
-    callbacks = [];
+    callbacks = []; // 在执行时可以继续收集方法
     cbs.forEach(cb => cb());
 }
 

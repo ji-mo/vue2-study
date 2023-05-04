@@ -38,7 +38,6 @@ function gen(node) {
             defaultTagRE.lastIndex = 0; // 重置lastIndex
             let lastIndex = 0;
             while (match = defaultTagRE.exec(text)) {
-                // console.log('match', match, defaultTagRE.lastIndex);
                 let index = match.index;
                 if (index > lastIndex) {
                     tokens.push(JSON.stringify(text.slice(lastIndex, index)));
@@ -59,7 +58,7 @@ function genChildren(children) {
 
 function codegen(ast) {
     let children = genChildren(ast.children);
-    // _c("div", {id: "app"}, ("p", null, ...))
+    // _c("div", {id: "app"}, _c("p", null, _v(_s(name) + 'text' + _s(age), ...), ...))
     let code = (`_c("${ast.tag}",${
         ast.attrs.length > 0 ? genProps(ast.attrs) : "null"
     }${ast.children.length > 0 ? `,${children}` : ""})`);
@@ -68,9 +67,10 @@ function codegen(ast) {
 
 // 对模板进行编译
 export function compileToFunction(template) {
-    // 1.将template通过正则匹配，然后解析成语法树
+    // 1.将template字符串通过正则匹配，然后解析成语法树
     let ast = parseHTML(template);
     // 2.生成render方法（render方法执行后返回的结果就是虚拟DOM）
+    // _c("div", {id: "app"}, _c("p", null, _v(_s(name) + 'text' + _s(age), ...), ...))
     let code = codegen(ast);
     // 实现模板引擎，with + new Function（需要了解with函数和Function构造函数）
     code = `with(this){return ${code}}`
