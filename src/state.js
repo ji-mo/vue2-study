@@ -1,9 +1,14 @@
+import Dep from "./observe/dep";
 import { observe } from "./observe/index";
+import Watcher from "./observe/watcher";
 
 export function initState(vm) {
     const opts = vm.$options;
     if (opts.data) {
         initData(vm);
+    }
+    if (opts.computed) {
+        initComputed(vm);
     }
 }
 
@@ -30,5 +35,50 @@ function initData(vm) {
     // 将vm._data代理到vm身上
     for (let key in data) {
         proxy(vm, '_data', key);
+    }
+}
+
+function initComputed(vm) {
+    const computed = vm.$options.computed;
+    const watchers = vm._computedWatchers = {};
+    for (let key in computed) {
+        let userDef = computed[key];
+
+        // 我们需要监控计算属性 get 变化
+        let fn = typeof userDef === 'function' ? userDef : userDef.get;
+
+        // 传入lazy避免初始化Watcher立刻执行fn，并将watcher与当前计算属性对应起来
+        watchers[key] = new Watcher(vm, fn, {lazy: true});
+
+        // 劫持计算属性，等触发（异步，所以此时计算属性已经和计算wathcer绑定）_update(_render)触发计算属性的get
+        defineComputed(vm, key, userDef);
+    }
+}
+function defineComputed(target, key, userDef) {
+    const setter = userDef.set || (() => {});
+    // 将计算属性代理到实例上
+    Object.defineProperty(target, key, {
+        // defineProperty中this指向代理对象
+        get: createComputedGetter(key),
+        set: setter,
+    });
+}
+// 所以实际上不是计算属性收集依赖，而是让依赖收集计算wather和渲染watcher，然后通过get触发更新
+function createComputedGetter(key) {
+    // 需要检测当前getter是否需要执行（依赖不变不用重新执行）
+    return function() {
+        const watcher = this._computedWatchers[key]; // 拿到计算属性对应的watcher
+        if (watcher.dirty) { // 避免多次执行
+            // 执行watcher.get方法，通过触发依赖的属性get记录当前的计算属性watcher，保存计算属性的值value
+            // 计算属性取值依赖属性时，依赖属性的dep记录了当前计算属性watcher[0]
+            watcher.evaluate();
+        }
+        if (Dep.target) {
+            // 计算属性出栈后 还有渲染watcher，让依赖属性的dep将渲染watcher也记录
+            // 如果依赖属性不变化，直接从当前计算属性的watcher中取值
+            // 依赖属性变化，先让计算watcher重置dirty，再触发渲染wahter重新取值，重新计算新的计算属性
+            watcher.depend();
+        }
+        return watcher.value;
     }
 }

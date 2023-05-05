@@ -22,4 +22,14 @@ class Dep {
 }
 Dep.target = null;
 
+let stack = [];
+export function pushStack(watcher) {
+    stack.push(watcher);
+    Dep.target = watcher;
+}
+export function popStack() {
+    stack.pop();
+    Dep.target = stack[stack.length - 1];
+}
+
 export default Dep;

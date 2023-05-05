@@ -1,4 +1,4 @@
-import Dep from "./dep";
+import Dep, { popStack, pushStack } from "./dep";
 
 let id = 0;
 
@@ -17,7 +17,11 @@ class Watcher {
         this.getter = fn;
         this.deps = []; // 后续我们需要实现计算属性等，还有一些清理工作
         this.depsId = new Set();
-        this.get(); // 调用执行一次
+
+        this.lazy = options.lazy;
+        this.dirty = this.lazy; // 缓存值
+        this.vm = vm;
+        this.lazy ?  undefined : this.get(); // 调用执行一次
     }
     addDep(dep) {
         // 当多个属性变化需要更新节点，通过dep收集这些属性所在的watcher，多个属性在同一个watcher则需要去重
@@ -29,17 +33,35 @@ class Watcher {
             dep.addSub(this); // dep记录当前属性变化后所需更新视图的watcher
         }
     }
+    evaluate() {
+        this.value = this.get(); // 获取用户函数返回值（计算属性），并标记为脏
+        this.dirty = false;
+    }
     get() {
         // 静态属性，将当前更新视图的watcher保存
         // getter里的with方法触发数据劫持，get回调中拿到当前属性的watcher
         // 并使用dep.depend方法，depend调用watcher.addDep去重多个属性在同一个watcher
-        Dep.target = this;
-        this.getter(); // 将插值表达式中的属性从data中取出，触发get属性描述符
-        Dep.target = null; // 清空
+        // Dep.target = this;
+        pushStack(this);
+        let value = this.getter.call(this.vm); // 将插值表达式中的属性从data中取出（计算属性也会从实例上取值），触发get属性描述符
+        // Dep.target = null; // 清空
+        popStack();
+        return value;
+    }
+    depend() {
+        let i = this.deps.length;
+        while(i--) {
+            // dep.depend收集渲染watcher（Dep.target）
+            this.deps[i].depend(); // 计算属性watcher也收集渲染watcher
+        }
     }
     update() {
-        // 把所有需要update的watcher都暂存起来
-        queryWatcher(this);
+        if (this.lazy) {
+            this.dirty = true; // 如果计算属性依赖值变化了，重置脏值
+        } else {
+            // 把所有需要update的watcher都暂存起来
+            queryWatcher(this);
+        }
     }
     run() {
         this.get();
