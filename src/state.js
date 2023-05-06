@@ -10,6 +10,9 @@ export function initState(vm) {
     if (opts.computed) {
         initComputed(vm);
     }
+    if (opts.watch) {
+        initWatch(vm);
+    }
 }
 
 function proxy(vm, target, key) {
@@ -37,7 +40,7 @@ function initData(vm) {
         proxy(vm, '_data', key);
     }
 }
-
+// 计算属性
 function initComputed(vm) {
     const computed = vm.$options.computed;
     const watchers = vm._computedWatchers = {};
@@ -81,4 +84,25 @@ function createComputedGetter(key) {
         }
         return watcher.value;
     }
+}
+// 监听属性
+function initWatch(vm) {
+    let watch = vm.$options.watch;
+    for (let key in watch) {
+        const handler = watch[key]; // 字符串、数组、函数、对象
+        if (Array.isArray(handler)) {
+            for(let i = 0;i < handler.length; i++) {
+                createWatcher(vm, key, handler[i]);
+            }
+        } else {
+            createWatcher(vm, key, handler);
+        }
+    }
+}
+function createWatcher(vm, key, handler) {
+    // handler字符、函数、对象(暂不考虑)
+    if (typeof handler === 'string') {
+        handler = vm[handler]; // 取出当前监听的属性值
+    }
+    return vm.$watch(key, handler);
 }

@@ -9,19 +9,27 @@ let id = 0;
 // 每个组件都有一个watcher，用一个id进行区分
 // 目前只有根组件
 class Watcher {
-    constructor(vm, fn, options) {
+    constructor(vm, exprOrFn, options, cb) {
         this.id = id ++;
         this.renderWatcher = options; // 是一个渲染watcher
         // getter说明该函数会发生取值（将插值表达式中的属性从data中取出，触发get属性描述符）操
         // 每次都会拿到oldNode，创建newOld，更新DOM后重新赋值vm.$el
-        this.getter = fn;
+        if (typeof exprOrFn === 'string') {
+            this.getter = function() {
+                return vm[exprOrFn];
+            }
+        } else {
+            this.getter = exprOrFn;
+        }
         this.deps = []; // 后续我们需要实现计算属性等，还有一些清理工作
         this.depsId = new Set();
+        this.cb = cb;
+        this.user = options.user; // 表示是否是用户自己的watcher
 
         this.lazy = options.lazy;
         this.dirty = this.lazy; // 缓存值
         this.vm = vm;
-        this.lazy ?  undefined : this.get(); // 调用执行一次
+        this.value = this.lazy ?  undefined : this.get(); // 调用执行一次
     }
     addDep(dep) {
         // 当多个属性变化需要更新节点，通过dep收集这些属性所在的watcher，多个属性在同一个watcher则需要去重
@@ -64,7 +72,12 @@ class Watcher {
         }
     }
     run() {
+        let oldValue = this.value;
+        let newValue = this.get();
         this.get();
+        if (this.user) {
+            this.cb.call(this.vm, newValue, oldValue);
+        }
     }
 }
 // 给每个属性都增加一个dep，目的是收集watcher（需要去重）
