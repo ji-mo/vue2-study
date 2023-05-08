@@ -23,8 +23,13 @@ function vnode(vm, tag, key, data, children, text) {
         vm,
         tag,
         key,
-        data,
+        data, // 属性
         children,
         text
     };
+}
+
+export function isSameVnode(vnode1, vnode2) {
+    // 比较两个虚拟dom的标签名和key
+    return vnode1.tag === vnode2.tag && vnode1.key === vnode2.key;
 }

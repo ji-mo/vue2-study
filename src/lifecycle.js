@@ -1,46 +1,6 @@
 import Watcher from "./observe/watcher";
 import { createElementVNode, createTextVNode } from "./vdom";
-
-function createElm(vnode) {
-    let { tag, data, children, text } = vnode;
-    if (typeof tag === 'string') {
-        // 创建标签
-        vnode.el = document.createElement(tag);
-        // 设置属性
-        patchProps(vnode.el, data);
-        children.forEach(child => {
-            vnode.el.appendChild(createElm(child));
-        });
-    } else {
-        // 创建文本
-        vnode.el = document.createTextNode(text);
-    }
-    return vnode.el;
-}
-
-function patchProps(el, props) {
-    for (let key in props) {
-        if (key === 'style') {
-            for (let styleName in props.style) {
-                el.style[styleName] = props.style[styleName];
-            }
-        } else {
-            el.setAttribute(key, props[key]);
-        }
-    }
-}
-
-function patch(oldVNode, vnode) {
-    const isRealElement = oldVNode.nodeType; // 是否是真实节点
-    if (isRealElement) {
-        const elm = oldVNode;
-        const parentElm = elm.parentNode; // 获取节点父元素
-        let newElm = createElm(vnode);
-        parentElm.insertBefore(newElm, elm.nextSibling); // 插入生成的节点
-        parentElm.removeChild(elm); // 删除老节点
-        return newElm;
-    }
-}
+import { patch } from "./vdom/patch";
 
 export function initLifeCycle(Vue) {
     // 将vnode转化成为真实dom

@@ -1,6 +1,6 @@
 import Dep from "./observe/dep";
 import { observe } from "./observe/index";
-import Watcher from "./observe/watcher";
+import Watcher, { nextTick } from "./observe/watcher";
 
 export function initState(vm) {
     const opts = vm.$options;
@@ -105,4 +105,14 @@ function createWatcher(vm, key, handler) {
         handler = vm[handler]; // 取出当前监听的属性值
     }
     return vm.$watch(key, handler);
+}
+
+export function initStateMixin(Vue) {
+    Vue.prototype.$nextTick = nextTick;
+    Vue.prototype.$watch = function (expOrFn, cb) {
+        // expOrFn可能是字符name，可能时函数() => vm.name
+        // expOrFn是取值操作，出发了监听属性的get收集到当前watcher
+        // name变化了 直接执行cb函数即可
+        new Watcher(this, expOrFn, {user: true}, cb);
+    }
 }
