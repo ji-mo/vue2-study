@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app" style="width: 240px;height: 48px;">
+        <p key="only" id="pid"> {{ name }} and {{ age }} and {{ name }}</p>
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        console.log(window.app, app);
+        const vue = new Vue({
+            data() {
+                return {
+                    name: 'Tom',
+                    age: 18,
+                    address: {
+                        a: 1,
+                        b: 2,
+                    },
+                    array: [1,2,3,4]
+                }
+            },
+            // template: '<div></div>'
+        });
+        vue.$mount('#app');
+        vue.age = 24;
+        console.log(app.innerHTML);
+        vue.$nextTick(() => {
+            console.log(app.innerHTML);
+        });
+        // setInterval(() => {
+        //     vue.age+=2;
+        // }, 2000);
+    </script>
+</body>
+</html>

@@ -8,9 +8,16 @@ export function initLifeCycle(Vue) {
         // 通过_render方法，拿到虚拟dom
         const vm = this;
         const el = vm.$el;
-        // console.log('_update', vnode);
         // patch 初始化、更新
-        vm.$el = patch(el, vnode); // 每次覆盖最新的dom
+        // vm.$el = patch(el, vnode); // 每次覆盖最新的dom
+        const prevVnode = vm._vnode;
+        if (prevVnode) {
+            // 后续使用diff算法比对更新
+            vm.$el = patch(prevVnode, vnode);
+        } else {
+            // 第一次直接替换模板
+            vm.$el = patch(el, vnode);
+        }
     }
     // _c('div', {}, ...children) 创建元素节点
     Vue.prototype._c = function() {
@@ -53,4 +60,12 @@ export function mountComponent(vm, el) {
     };
     // 一个watcher就是一个组件的更新观察者
     new Watcher(vm, updateComponent, true);
+}
+
+export function callHook(vm, hook) { // 调用钩子函数
+    const hanlers = vm.$options[hook];
+    // hanlers是一个数组
+    if (hanlers) {
+        hanlers.forEach(hand => hand.call(vm));
+    }
 }

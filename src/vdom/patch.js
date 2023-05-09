@@ -29,7 +29,7 @@ export function patchProps(el, oldProps = {}, props = {}) {
     }
     for (let key in oldProps) {
         // 新dom没有的属性删除
-        if (!oldProps[key]) {
+        if (!props[key]) {
             el.removeAttribute(key);
         }
     }
@@ -47,7 +47,6 @@ export function patchProps(el, oldProps = {}, props = {}) {
 
 export function patch(oldVNode, vnode) {
     const isRealElement = oldVNode.nodeType; // 是否是真实节点
-    console.log('patch-----', isRealElement, oldVNode, vnode);
     if (isRealElement) {
         const elm = oldVNode;
         const parentElm = elm.parentNode; // 获取节点父元素
@@ -96,7 +95,8 @@ export function patch(oldVNode, vnode) {
         return el;
     }
     function mountChildren(el, newChildren) {
-        for (let child of newChildren) {
+        for (let i = 0; i < newChildren.length; i++) {
+            let child = newChildren[i];
             el.appendChild(createElm(child));
         }
     }
@@ -142,7 +142,7 @@ export function patch(oldVNode, vnode) {
                 el.insertBefore(oldEndVnode.el, oldStartVnode.el); // 将老节点的尾部移动到前面
                 oldEndVnode = oldChildren[--oldEndIndex];
                 newStartVnode = newChildren[++newStartIndex];
-            } else if (isSameVnode(oldEndVnode, newStartVnode)) { // old a,b,c,d     new  b,c,d,a 尾部移动到前面
+            } else if (isSameVnode(oldStartVnode, newEndVnode)) { // old a,b,c,d     new  b,c,d,a 尾部移动到前面
                 // 剩下的交叉（旧首新尾比对）
                 patchVnode(oldStartVnode, newEndVnode);
                 el.insertBefore(oldStartVnode.el, newEndVnode.el.nextSibling); // 将老节点的前面移动到尾部

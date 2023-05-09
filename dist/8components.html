@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <p>
+            <a>{{ name }}</a>
+        </p>
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        // 全局组件
+        // Vue.component('my-com', Vue.extend({
+        //     template: '<buttom>按钮</button>'
+        // }));
+        const vue = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    name: 'jimo',
+                }
+            },
+            // 局部组件   实际上都是继承
+            // components: {
+            //     'my-com': Vue.extend({
+            //         template: '<buttom>按钮</button>'
+            //     }),
+            // }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app" style="width: 360px;height: 48px;">
+        <p> {{ a }}</p>
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        Vue.mixin({
+            created() {
+                console.log('mixin1');
+            },
+        });
+        // 发布订阅 -> 订阅
+        Vue.mixin({
+            created() {
+                console.log('mixin2');
+            },
+        });
+        console.log(Vue.options);
+        const vue = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    a: 'ji',
+                    b: 'mo',
+                }
+            },
+            created() {
+                console.log('created');
+            },
+        });
+    </script>
+</body>
+
+</html>

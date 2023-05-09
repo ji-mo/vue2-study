@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app" style="width: 360px;height: 48px;">
+        <p key="only"> {{ array }}</p>
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+        console.log(window.app, app);
+        const vue = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    obj: {
+                        a: 1,
+                        b: 2,
+                        c: {d: 3}
+                    },
+                    array: [1, 2, {a: 1}, ['a', 'b']],
+                }
+            },
+        });
+        // vue.$mount('#app');
+        setTimeout(() => {
+            // debugger;
+            // vue.array[0] = 9;
+            // vue.obj.a = 19;
+            vue.array.push(9, 9, 9);
+            // vue.array[3].push('c');
+            // vue.array[3][2] = 5;
+        }, 1000);
+        console.log(vue._data);
+    </script>
+</body>
+
+</html>
